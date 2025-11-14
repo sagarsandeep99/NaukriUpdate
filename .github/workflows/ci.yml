@@ -1,0 +1,83 @@
+name: Naukri Update CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # Run daily at 9:00 AM IST (3:30 AM UTC)
+    - cron: '30 3 * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  test:
+    name: Run Job Portal Tests
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x' # Updated to match .NET 8.0
+    
+    - name: Setup Chrome
+      uses: browser-actions/setup-chrome@v1
+      with:
+        chrome-version: stable
+    
+    - name: Display Chrome version
+      run: chrome --version
+    
+    - name: Verify Resume Files
+      run: |
+        Write-Host "Checking for resume files..."
+        $resumePath = "NaukriJobUpdate/TestData/Resumes"
+        Write-Host "Looking in: $resumePath"
+
+        if (Test-Path $resumePath) {
+          $resumeFiles = Get-ChildItem -Path $resumePath -Filter "*.pdf" -ErrorAction SilentlyContinue
+          if ($resumeFiles) {
+            Write-Host "✓ Found $($resumeFiles.Count) resume file(s):"
+            $resumeFiles | ForEach-Object { Write-Host "  - $($_.Name)" }
+          } else {
+            Write-Host "✗ No PDF files found in $resumePath"
+            Write-Host "⚠ Tests may fail without resume files"
+            exit 1
+          }
+        } else {
+          Write-Host "✗ Directory $resumePath does not exist"
+          exit 1
+        }
+      shell: pwsh
+    
+    - name: Restore dependencies
+      run: dotnet restore NaukriJobUpdate/NaukriJobUpdate.csproj
+    
+    - name: Build
+      run: dotnet build NaukriJobUpdate/NaukriJobUpdate.csproj --no-restore --configuration Release
+    
+    - name: Run SrishtiNaukri Test Only
+      run: dotnet test NaukriJobUpdate/NaukriJobUpdate.csproj --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "FullyQualifiedName~SrishtiNaukri"
+      continue-on-error: true
+      env:        
+        # Srishti's credentials
+        SRISHTI_NAUKRI_EMAIL: ${{ secrets.SRISHTI_NAUKRI_EMAIL }}
+        SRISHTI_NAUKRI_PASSWORD: ${{ secrets.SRISHTI_NAUKRI_PASSWORD }}
+    
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: '**/test-results.trx'
+    
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      if: always()
+      with:
+        files: '**/test-results.trx'
+        check_name: 'Job Portal Test Results'
