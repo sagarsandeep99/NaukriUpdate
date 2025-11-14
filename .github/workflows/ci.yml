@@ -55,13 +55,13 @@ jobs:
       shell: pwsh
     
     - name: Restore dependencies
-      run: dotnet restore NaukriJobUpdate/NaukriJobUpdate.csproj
+      run: dotnet restore NaukriJobUpdate/NaukriJobUpdate/NaukriJobUpdate.csproj
     
     - name: Build
-      run: dotnet build NaukriJobUpdate/NaukriJobUpdate.csproj --no-restore --configuration Release
+      run: dotnet build NaukriJobUpdate/NaukriJobUpdate/NaukriJobUpdate.csproj --no-restore --configuration Release
     
     - name: Run SrishtiNaukri Test Only
-      run: dotnet test NaukriJobUpdate/NaukriJobUpdate.csproj --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "FullyQualifiedName~SrishtiNaukri"
+      run: dotnet test NaukriJobUpdate/NaukriJobUpdate/NaukriJobUpdate.csproj --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx" --filter "FullyQualifiedName~SrishtiNaukri"
       continue-on-error: true
       env:        
         # Srishti's credentials
@@ -76,7 +76,7 @@ jobs:
         path: '**/test-results.trx'
     
     - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action/composite@v2
+      uses: EnricoMi/publish-unit-test-result-action/windows@v2
       if: always()
       with:
         files: '**/test-results.trx'
