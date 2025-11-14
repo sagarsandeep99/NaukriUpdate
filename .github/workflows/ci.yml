@@ -35,7 +35,7 @@ jobs:
     - name: Verify Resume Files
       run: |
         Write-Host "Checking for resume files..."
-        $resumePath = "NaukriJobUpdate/TestData/Resumes"
+        $resumePath = "NaukriJobUpdate/NaukriJobUpdate/TestData/Resumes"
         Write-Host "Looking in: $resumePath"
 
         if (Test-Path $resumePath) {
