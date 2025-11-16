@@ -9,7 +9,7 @@ namespace NaukriJobUpdate
 {
     public class SrishtiNaukri
     {
-        IWebDriver driver;
+        IWebDriver driver = new ChromeDriver();
         private string email;
         private string password;
 
@@ -19,14 +19,6 @@ namespace NaukriJobUpdate
             email = Environment.GetEnvironmentVariable("SRISHTI_NAUKRI_EMAIL") ?? throw new Exception("SRISHTI_NAUKRI_EMAIL not set");
             password = Environment.GetEnvironmentVariable("SRISHTI_NAUKRI_PASSWORD") ?? throw new Exception("SRISHTI_NAUKRI_PASSWORD not set");
 
-            var chromeOptions = new ChromeOptions();
-            chromeOptions.AddArguments("--headless");
-            chromeOptions.AddArguments("--no-sandbox");
-            chromeOptions.AddArguments("--disable-dev-shm-usage");
-            chromeOptions.AddArguments("--disable-gpu");
-            chromeOptions.AddArguments("--window-size=1920,1080");
-
-            driver = new ChromeDriver(chromeOptions);
             driver.Manage().Window.Maximize();
             driver.Navigate().GoToUrl("https://www.naukri.com/");
 
@@ -75,8 +67,6 @@ namespace NaukriJobUpdate
 
             for (int i = 0; i < 50; i++)
             {
-                Console.WriteLine($"Update iteration: {i + 1}/50");
-
                 driver.FindElement(By.XPath("//div[@id='lazyResumeHead']//span[@class='edit icon']")).Click();
                 Thread.Sleep(3000);
                 driver.FindElement(By.XPath("//form[@name='resumeHeadlineForm']//button[@type='submit']")).Click();
